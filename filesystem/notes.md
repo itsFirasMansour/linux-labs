@@ -59,6 +59,4 @@ less /etc/passwd  # view user accounts
 ls /proc/         # running processes
 ```
 
----
 
-*Day 1 — Linux Filesystem Exploration*

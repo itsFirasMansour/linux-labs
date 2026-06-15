@@ -47,7 +47,7 @@
 * `chown user file`          # Change owner
 * `chown user:group file`     # Change owner and group
 * `chown :group file`        # Change group only
-* `chown -R user:group /dir` # Recursive change
+* `chown -R user:group /dir` # Recursive change : The -R flag stands for Recursive. When applied to a directory, it changes the ownership of that directory and every single file, subdirectory, and hidden file contained inside it.
 
 ## 4. `useradd` & `usermod`
 

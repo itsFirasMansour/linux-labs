@@ -1,185 +1,102 @@
-# Linux User Management Cheat Sheet
 
-## User Creation
 
-```bash
-adduser username
-useradd username
-```
+# Linux Permissions & User Management Cheat Sheet
 
-Create a new user account.
+## 1. File Permissions Mental Model
 
----
+* **Structure:** `[type][owner][group][others]`
+* Example: `-rwxr-xr-- 1 firas devs file.sh`
 
-## Password Management
 
-```bash
-passwd username
-```
+* **Types:** `-` (file), `d` (dir), `l` (symlink).
+* **Numeric (Octal) Values:**
+* `4`: Read (r)
+* `2`: Write (w)
+* `1`: Execute (x)
+* *Calculation: Sum the numbers (e.g., 7 = 4+2+1)*
 
-Set or change a user's password.
 
----
 
-## User Deletion
+## 2. `chmod` (Changing Permissions)
 
-```bash
-userdel username
-```
+### Numeric Mode
 
-Delete a user.
+* `chmod 755 file` (rwxr-xr-x)
+* `chmod 644 file` (rw-r--r--)
+* `chmod 700 dir`  (rwx------)
+* `chmod 600 file` (rw-------)
 
-```bash
-userdel -r username
-```
+### Symbolic Mode
 
-Delete a user and their home directory.
+* `chmod u+x file`  # Add execute for owner
+* `chmod g-w file`  # Remove write from group
+* `chmod o-r file`  # Remove read from others
+* `chmod a+x file`  # Execute for everyone
+* `chmod u=rw,go=r file` # Set exactly
 
----
+| Mode | Symbolic | Use Case |
+| --- | --- | --- |
+| 644 | rw-r--r-- | Typical file |
+| 755 | rwxr-xr-x | Script / Dir |
+| 700 | rwx------ | Private dir |
+| 600 | rw------- | SSH private key |
+| 770 | rwxrwx--- | Shared group dir |
 
-## Group Management
+## 3. `chown` (Ownership)
 
-Create a group:
+* `chown user file`          # Change owner
+* `chown user:group file`     # Change owner and group
+* `chown :group file`        # Change group only
+* `chown -R user:group /dir` # Recursive change
 
-```bash
-groupadd groupname
-```
+## 4. `useradd` & `usermod`
 
-Delete a group:
+### Create Users
 
-```bash
-groupdel groupname
-```
+* `sudo useradd -m -s /bin/bash alice` # Create home + shell
+* `sudo useradd -m -G devs alice`      # Add to supplementary group
 
----
+### Modify Users
 
-## User and Group Information
+* `sudo usermod -aG sudo alice`        # Append to group (KEEP existing)
+* `sudo usermod -L alice`              # Lock account
+* `sudo usermod -s /bin/zsh alice`     # Change shell
 
-Display user information:
+| Flag | Meaning |
+| --- | --- |
+| `-m` | Create home directory |
+| `-s` | Set login shell |
+| `-G` | Add to supplementary group |
+| `-aG` | Append to group (don't replace) |
+| `-r` | System user (UID < 1000) |
 
-```bash
-id username
-```
+## 5. Deletion & Verification
 
-Display user groups:
+* `sudo userdel -r alice`              # Delete user + home dir
+* `sudo groupadd -g 1500 devs`         # Create group with specific GID
+* `id alice`                           # Show UID, GID, and groups
 
-```bash
-groups username
-```
+## 6. `/etc/passwd` & `/etc/shadow`
 
-List all users:
+### `/etc/passwd` Structure
 
-```bash
-cat /etc/passwd
-```
+`username:x:UID:GID:GECOS:home_dir:shell`
 
-List all groups:
+* `UID 0`: Root
+* `< 1000`: System users
+* `≥ 1000`: Regular users
 
-```bash
-cat /etc/group
-```
+### `/etc/shadow` Structure
 
----
+`username:hash:lastchg:min:max:warn:inactive:expire`
 
-## Switching Users
+* `!!` or `!`: Account is locked.
+* `*`: No password set.
 
-Switch to another user:
+## 7. Security Notes & Pitfalls
 
-```bash
-su username
-```
-
-Switch to root:
-
-```bash
-su -
-```
-
-Execute a command as root:
-
-```bash
-sudo command
-```
-
----
-
-## Account Locking
-
-Lock a user account:
-
-```bash
-passwd -l username
-```
-
-Unlock a user account:
-
-```bash
-passwd -u username
-```
-
----
-
-## Important System Files
-
-Users:
-
-```text
-/etc/passwd
-```
-
-Encrypted passwords:
-
-```text
-/etc/shadow
-```
-
-Groups:
-
-```text
-/etc/group
-```
-
-Group passwords:
-
-```text
-/etc/gshadow
-```
-
----
-
-## ⚠️ Important: Adding Users to Groups
-
-Correct command:
-
-```bash
-usermod -aG groupname username
-```
-
-Example:
-
-```bash
-usermod -aG developers firas
-```
-
-Incorrect command:
-
-```bash
-usermod -G groupname username
-```
-
-The `-G` option replaces all supplementary groups for the user.
-
-The `-aG` option appends the new group while preserving existing memberships.
-
-This is one of the most common Linux administration mistakes because it can silently remove a user from every other group they belong to.
-
----
-
-## Exam Tips
-
-* `adduser` is interactive and easier for beginners.
-* `useradd` is lower-level and commonly used in scripts.
-* User information is stored in `/etc/passwd`.
-* Group information is stored in `/etc/group`.
-* Password hashes are stored in `/etc/shadow`.
-* Always use `usermod -aG` when adding a user to an existing group.
+* **The `-aG` Trap:** `usermod -G` replaces groups; `usermod -aG` appends to them.
+* **SSH Keys:** Must be `600` permissions.
+* **System Users:** Typically use `/sbin/nologin` shell to prevent interactive login.
+* **World-Writable:** Never set `777` on files or directories in production.
+* **Root Only:** `/etc/shadow` should be readable by root only.

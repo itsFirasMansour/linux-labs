@@ -11,20 +11,21 @@ This lab focuses on Linux user management, permissions, sudo configuration, cron
 ## Commands Used
 
 ```bash
-# sudo useradd admin_user
-# sudo useradd dev_user 
-# sudo useradd readonly_user
+sudo useradd -m -s /bin/bash admin_user
+sudo useradd -m -s /bin/bash dev_user 
+sudo useradd -m -s /bin/bash readonly_user
 ```
 
 ## Verification
 
 ```bash
-# cat /etc/passwd
+cat /etc/passwd
 ```
 
 ## Screenshot
 
-<img width="703" height="158" alt="image" src="https://github.com/user-attachments/assets/4bfc7e8f-0283-4410-b168-841db0a22051" />
+<img width="723" height="142" alt="image" src="https://github.com/user-attachments/assets/acc05287-95be-48f3-b60f-6b9a3f494875" />
+
 <img width="713" height="70" alt="image" src="https://github.com/user-attachments/assets/92486386-c98a-4d26-9f63-69064702a374" />
 
 
@@ -39,62 +40,64 @@ Three users were created to simulate different privilege levels.
 ## Commands Used
 
 ```bash
-# Commands here
+sudo chown admin_user:admin_user /secure_data
+sudo chmod 700 /secure_data
 ```
 
 ## Verification
 
 ```bash
-# Verification commands or output
+ls -ld /secure_data
+sudo -u dev_user ls /secure_data
+sudo -u admin_user ls /secure_data
 ```
 
 ## Screenshot
+<img width="713" height="202" alt="image" src="https://github.com/user-attachments/assets/409b69e8-7f1f-454d-980c-d1323bef1348" />
 
-![Task 2 Screenshot](../screenshots/task2.png)
+<img width="717" height="125" alt="image" src="https://github.com/user-attachments/assets/c0b3436d-5390-4551-97b3-dc77025e59bc" />
+
 
 ## Explanation
 
-Explain:
-
-* What was done
-* Why it was done
-* What the output means
-
-## Security Relevance
-
-Explain why this matters from a security perspective.
+Ownership (`chown`) and permissions (`chmod 700`) work together to restrict access.
+`700` means only the owner gets `rwx` — group and others get nothing. We verify by
+testing access as `dev_user` (should fail) and `admin_user` (should succeed). This is
+discretionary access control (DAC) — the same pattern used for SSH keys (`600`),
+SSL certificates, and database directories in real systems.
 
 ---
 
-# Task 3 - [Task Name]
+# Task 3 - Configure Sudo
 
 ## Commands Used
 
 ```bash
-# Commands here
+sudo usermod -aG sudo admin_user
 ```
 
 ## Verification
 
 ```bash
-# Verification commands or output
+id admin_user
+id dev_user
 ```
 
 ## Screenshot
 
-![Task 3 Screenshot](../screenshots/task3.png)
+<img width="705" height="42" alt="image" src="https://github.com/user-attachments/assets/e2bd5d2d-05c4-4a43-b838-7ed24d1265bc" />
+
+<img width="720" height="122" alt="image" src="https://github.com/user-attachments/assets/c72622e2-c86f-4a76-9071-d025e9ad75a5" />
+
+
 
 ## Explanation
 
-Explain:
-
-* What was done
-* Why it was done
-* What the output means
-
-## Security Relevance
-
-Explain why this matters from a security perspective.
+`usermod -aG sudo admin_user` adds `admin_user` to the sudo group. We use `-aG` not
+`-G` because `-G` alone replaces all existing groups — `-a` appends instead, keeping
+current memberships intact. We verify with `id` to confirm `admin_user` has `27(sudo)`
+and `dev_user` does not. This is the principle of least privilege — only users who
+need elevated access get it, which limits damage if an account is compromised.
 
 ---
 

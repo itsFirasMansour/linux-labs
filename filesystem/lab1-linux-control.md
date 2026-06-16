@@ -1,4 +1,4 @@
-# Lab X - Linux Control
+# Lab 1 - Linux Control
 
 ## Objective
 
@@ -68,7 +68,7 @@ SSL certificates, and database directories in real systems.
 
 ---
 
-# Task 3 - Configure Sudo
+# Task 3 - Cron Job
 
 ## Commands Used
 
@@ -101,36 +101,117 @@ need elevated access get it, which limits damage if an account is compromised.
 
 ---
 
-## Challenges Encountered
+# Task 4 - Configure Sudo
 
-| Issue | Resolution |
-| ----- | ---------- |
-|       |            |
-|       |            |
+## Commands Used
+
+```bash
+sudo touch /var/log/mycron.log
+sudo chmod 666 /var/log/mycron.log
+echo "* * * * * date >> /var/log/mycron.log" | sudo crontab -
+```
+
+## Verification
+
+```bash
+sudo crontab -l
+cat /var/log/mycron.log
+```
+
+## Screenshot
+
+<img width="718" height="157" alt="image" src="https://github.com/user-attachments/assets/96b1982c-ee10-429f-8a96-febaa6f6bd04" />
+
+<img width="652" height="60" alt="image" src="https://github.com/user-attachments/assets/50f5dd61-b442-4e72-aaa7-1b338f50d5c2" />
+
+<img width="676" height="106" alt="image" src="https://github.com/user-attachments/assets/f16ac393-aaa9-4417-87a0-ba6e38c228d2" />
+
+
+## Explanation
+
+Created `mycron.log` in `/var/log` — Linux's standard log directory. Set `chmod 666`
+so both cron and our user can write to it. Registered a cron job with `* * * * *`
+(every minute) to append the current timestamp. `>>` appends — `>` would overwrite
+previous entries. Cron is used in real systems to automate backups, clear temp files,
+and monitor services on a schedule.
+
+---
+
+# Task 5 - Process Kill Script
+
+## Commands Used
+```bash
+sudo tee /usr/local/bin/kill_process.sh << 'EOF'
+#!/bin/bash
+if [ -z "$1" ]; then
+    echo "Usage: $0 <process_name>"
+    exit 1
+fi
+PROCESS_NAME="$1"
+if pgrep -x "$PROCESS_NAME" > /dev/null; then
+    echo "[+] Found '$PROCESS_NAME'. Killing..."
+    pkill -x "$PROCESS_NAME"
+    sleep 3
+    if pgrep -x "$PROCESS_NAME" > /dev/null; then
+        pkill -9 -x "$PROCESS_NAME"
+        echo "[+] Force killed."
+    else
+        echo "[+] Terminated successfully."
+    fi
+else
+    echo "[-] No process named '$PROCESS_NAME' found."
+fi
+EOF
+
+sudo chmod +x /usr/local/bin/kill_process.sh
+```
+
+## Verification
+```bash
+sleep 300 &
+pgrep -x sleep
+kill_process.sh sleep
+pgrep -x sleep
+kill_process.sh fakeprogramxyz
+```
+
+## Screenshot
+<img width="712" height="92" alt="image" src="https://github.com/user-attachments/assets/530da8a4-8e76-4f55-b983-48d7bf61fa3f" />
+
+<img width="690" height="62" alt="image" src="https://github.com/user-attachments/assets/f13c727c-71b8-402b-a733-21ee203cb84b" />
+
+
+
+## Explanation
+The script kills a process by name using `pkill`. We use `-x` for exact name match —
+without it, searching for "fire" could kill "firefox" unintentionally. The script first
+sends SIGTERM, which gives the process time to save data and shut down gracefully.
+`sleep 3` waits 3 seconds before checking again — if the process is still running,
+SIGKILL forces it to stop immediately with no cleanup. This is used in real systems
+when automating service restarts or cleaning up stuck processes.
 
 ---
 
 ## Key Concepts Learned
-
-* Concept 1
-* Concept 2
-* Concept 3
-* Concept 4
+- Linux users each have a unique UID, home directory, and login shell
+- File permissions are controlled by two things together: ownership (`chown`) and mode (`chmod`)
+- `chmod 700` restricts access to the owner only — the foundation of DAC
+- `-aG` appends to groups; `-G` alone replaces them — a critical difference
+- Least privilege: users only get the access they actually need
+- Cron automates recurring tasks using a 5-field time syntax (`* * * * *`)
+- `>>` appends to files; `>` overwrites — always use `>>` for logs
+- SIGTERM gives a process time to clean up; SIGKILL forces immediate termination
 
 ---
 
 ## Lessons Learned
-
-* Lesson 1
-* Lesson 2
-* Lesson 3
+- Always verify permissions by testing as the restricted user, not as root
+- Root bypasses all permissions — `sudo -u username command` is the correct way to test
+- Small mistakes like `-G` instead of `-aG` can silently break a user's access
+- Automating tasks with cron requires the log file to exist and be writable beforehand
 
 ---
 
 ## Conclusion
-
-Summarize:
-
-* What was accomplished
-* What skills were developed
+This lab covered the core of Linux system administration: creating users with different privilege levels, restricting directory access using ownership and permissions, granting selective sudo access, automating tasks with cron, and writing a process management script. These skills directly apply to SOC and cloud security work — access control, least privilege, and log management are foundational concepts in every security role.
 * How this knowledge applies to cybersecurity or system administration

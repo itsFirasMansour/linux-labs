@@ -1,4 +1,4 @@
-# Lab 1 - Linux Control
+# Lab 1 - Linux Control 
 
 ## Objective
 

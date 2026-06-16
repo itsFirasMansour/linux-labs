@@ -214,4 +214,4 @@ when automating service restarts or cleaning up stuck processes.
 
 ## Conclusion
 This lab covered the core of Linux system administration: creating users with different privilege levels, restricting directory access using ownership and permissions, granting selective sudo access, automating tasks with cron, and writing a process management script. These skills directly apply to SOC and cloud security work — access control, least privilege, and log management are foundational concepts in every security role.
-* How this knowledge applies to cybersecurity or system administration
+

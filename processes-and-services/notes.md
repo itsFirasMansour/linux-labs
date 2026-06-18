@@ -1,6 +1,5 @@
-# 02 — Processes & Services
-**Phase:** 01 — Linux & Networking Fundamentals  
-**Date:** 2026-06-18  
+ — Processes & Services
+
 **Topics:** `ps aux` · `top` · `htop` · `systemctl` · `journalctl`
 
 ---
